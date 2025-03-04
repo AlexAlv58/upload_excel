@@ -1,45 +1,48 @@
-**Algoritmo de Uso de la Aplicación**
+# Explicación del Código - Integración con Zoho CRM
 
-1. **Inicialización del SDK de Zoho (mounted)**
-   - Cuando el componente se monta (`mounted`), se inicializa el SDK de Zoho mediante `ZOHO.embeddedApp.init()`.
-   - Se escucha el evento `PageLoad` para recibir datos de la página embebida y mostrarlos en la consola.
+## Descripción
+Esta aplicación permite cargar un archivo Excel, procesar los datos y crear registros en Zoho CRM. Utiliza Vue.js con Vuetify y la API de Zoho para gestionar contactos, cuentas y negocios (deals).
 
-2. **Carga de Archivo Excel (handleFileUpload)**
-   - El usuario selecciona un archivo Excel usando el `v-file-input`.
-   - Se lee el archivo con `FileReader` y se convierte a un array de datos usando `XLSX`.
-   - Se extrae la primera hoja del archivo y se transforma en un array JSON.
-   - Se almacenan los datos del Excel en `excelData`.
-   - Se generan los encabezados para la tabla `v-data-table` usando las claves del primer objeto del JSON.
+## Algoritmo de Uso
 
-3. **Ejecución de la Creación de Registros (fetchDataSDK)**
-   - Cuando el usuario hace clic en el botón "Crear", se ejecuta la función `fetchDataSDK`.
-   - Si no hay datos en `excelData`, se muestra una alerta para que el usuario suba un archivo primero.
+### 1. Inicialización del SDK de Zoho
+- En el `mounted()` del componente, se inicializa el SDK de Zoho con `ZOHO.embeddedApp.init()`, lo que permite interactuar con Zoho CRM desde la aplicación embebida.
 
-4. **Recorrido del Archivo Excel y Creación de Registros**
-   - Se recorre cada fila del archivo cargado.
-   - Se extraen los datos necesarios: `email`, `firstName`, `lastName` y `accountName`.
-   - Se realiza una búsqueda en Zoho CRM por el email:
-     - Si el correo no existe en Zoho, se crean:
-       - Un registro en "Accounts" con `accountName`.
-       - Un registro en "Contacts" con `email`, `firstName`, `lastName` y la cuenta asociada.
-     - Si el correo ya existe, se obtiene su `contactId` y `accountId`.
-     - Si el `accountId` no existe, se crea una nueva cuenta.
-   - Se crea un "Deal" (negociación) relacionado con el contacto y la cuenta.
+### 2. Carga de un Archivo Excel
+- El usuario selecciona un archivo Excel a través de un `v-file-input`.
+- Se procesa el archivo usando `XLSX`, extrayendo la primera hoja y convirtiéndola en JSON.
+- Se actualiza el estado `excelData` con los datos del archivo y se generan dinámicamente los encabezados para la tabla.
 
-5. **Mostrar Datos de Zoho en la Tabla (fetchZohoData)**
-   - Se obtiene la información de Zoho desde una API (`http://localhost:3000/get-zoho-data`).
-   - Se almacenan los datos en `zohoData` y se muestran en una tabla.
+### 3. Procesamiento de Datos al Presionar "Crear"
+- Al presionar el botón, se ejecuta `fetchDataSDK()`.
+- Se recorre el arreglo `excelData` y se extraen valores clave como el correo, nombre y apellido.
+- Se busca si el correo ya existe en Zoho CRM usando `ZOHO.CRM.API.searchRecord()`.
+- Si el correo no existe:
+  - Se crea una cuenta (`Account`).
+  - Se crea un contacto (`Contact`) asociado a la cuenta.
+- Si el correo existe:
+  - Se obtiene el `contactId` y la cuenta asociada, creando una si es necesario.
+- Se crea un negocio (`Deal`) vinculado al contacto y la cuenta.
 
-6. **Validación de Correos antes de Consultar en Zoho (fetchZohoDataTest)**
-   - Se extraen los correos desde el archivo Excel.
-   - Si no hay correos, se muestra una alerta.
-   - Se hace una petición para buscar esos correos en Zoho (comentado en el código).
-   - Se almacenan los datos encontrados en `zohoData`.
+### 4. Obtención de Datos desde Zoho CRM
+- La función `fetchZohoData()` permite obtener información desde Zoho mediante una petición a un backend.
+- La función `fetchZohoDataTest()` muestra cómo extraer correos desde el archivo Excel y realizar una consulta masiva en Zoho CRM.
 
-**Resumen del Flujo:**
-1. Se inicializa el SDK de Zoho.
-2. Se sube un archivo Excel y se leen los datos.
-3. Al hacer clic en "Crear", se procesan los datos del Excel.
-4. Se verifican y crean registros en Zoho CRM.
-5. Se muestran los datos obtenidos de Zoho en una tabla.
+### 5. Registro del Archivo y Errores en Zoho CRM
+- Al finalizar la creación de todos los deals, el archivo Excel subido se registrará en el módulo personalizado **Excel Uploads** de Zoho CRM.
+- En este registro se almacenarán los errores encontrados durante el proceso, si los hubiera.
+
+## Tecnologías Utilizadas
+- **Vue.js** con **Vuetify** para la interfaz.
+- **XLSX** para la manipulación de archivos Excel.
+- **Axios** para la comunicación con el backend.
+- **Zoho CRM API** para la integración con la plataforma.
+
+## Ubicación del Widget
+- Este widget está alojado en una **WebTab de Zoho CRM** llamada **Upload Excel**.
+
+## Mejoras Posibles
+- Agregar validaciones adicionales al procesar el archivo.
+- Manejo avanzado de errores y notificaciones al usuario.
+- Implementar una barra de progreso para la carga de datos en Zoho CRM.
 
